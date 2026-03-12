@@ -42,6 +42,13 @@ canvas{display:block}
 .ii:hover{background:rgba(255,255,255,.1)}
 .ic{width:18px;height:18px;border-radius:50%;flex-shrink:0}
 #craft-btn{position:fixed;top:15px;left:15px;background:rgba(155,89,182,.8);border:2px solid rgba(155,89,182,1);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;z-index:20;pointer-events:auto}
+#pause-btn{position:fixed;top:15px;right:60px;width:36px;height:36px;background:rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.3);border-radius:50%;color:#fff;font-size:20px;line-height:36px;text-align:center;cursor:pointer;z-index:25;pointer-events:auto;display:none;user-select:none}
+#pause-btn:hover{background:rgba(255,255,255,.15)}
+#pause-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+#pause-overlay.show{display:flex}
+#pause-overlay h1{color:#fff;font-size:48px;font-weight:700}
+#resume-btn{padding:12px 48px;font-size:20px;font-weight:700;background:linear-gradient(135deg,#27ae60,#2ecc71);border:2px solid #27ae60;color:#fff;border-radius:10px;cursor:pointer;letter-spacing:2px;transition:transform .15s}
+#resume-btn:hover{transform:scale(1.05)}
 #craft-btn:hover{background:rgba(155,89,182,1)}
 #craft{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:320px;background:rgba(20,20,40,.95);border:2px solid rgba(155,89,182,.6);border-radius:14px;padding:18px;z-index:100;pointer-events:auto;display:none}
 #craft.show{display:block}
@@ -59,6 +66,12 @@ canvas{display:block}
 </head>
 <body>
 <canvas id="game"></canvas>
+
+<div id="pause-btn" onclick="togglePause()">✕</div>
+<div id="pause-overlay">
+  <h1>PAUSED</h1>
+  <button id="resume-btn" onclick="togglePause()">RESUME</button>
+</div>
 
 <div id="start">
   <h1>FLORR CLONE</h1>
@@ -245,7 +258,7 @@ const MOBS={
 };
 
 // ===== GAME STATE =====
-let started=false,mX=0,mY=0,camX=0,camY=0,sc=0;
+let started=false,paused=false,mX=0,mY=0,camX=0,camY=0,sc=0;
 let nearPortal=null;
 
 const P={
@@ -475,7 +488,7 @@ document.getElementById('xcraft').onclick=()=>{
 // ===== START / DEATH =====
 document.getElementById('play').onclick=()=>{
   P.name=document.getElementById('pname').value||'Flower';
-  document.getElementById('start').style.display='none';started=true;renderSlots();
+  document.getElementById('start').style.display='none';started=true;document.getElementById('pause-btn').style.display='block';renderSlots();
 };
 document.getElementById('respawn').onclick=()=>{
   document.getElementById('death').classList.remove('show');
@@ -484,7 +497,7 @@ document.getElementById('respawn').onclick=()=>{
 
 // ===== UPDATE =====
 function update(){
-  if(!started||P.hp<=0)return;
+  if(!started||P.hp<=0||paused)return;
 
   // Move toward mouse
   const tx=P.x+(mX-C.width/2),ty=P.y+(mY-C.height/2);
@@ -967,6 +980,13 @@ function drawMinimap(){
   // View
   MX.strokeStyle='rgba(255,255,255,.3)';MX.lineWidth=1;
   MX.strokeRect((camX+ox)*sc2,camY*sc2,C.width*sc2,C.height*sc2);
+}
+
+// ===== PAUSE =====
+function togglePause(){
+  paused=!paused;
+  document.getElementById('pause-overlay').classList.toggle('show',paused);
+  document.getElementById('pause-btn').textContent=paused?'▶':'✕';
 }
 
 // ===== MAIN LOOP =====
